@@ -35,7 +35,7 @@ RESOURCE_MAP={
 }
 
 def init_db():
-    c=sqlite3.connect(DB)
+    c=sqlite3.connect(DB, timeout=10)
     c.execute("""CREATE TABLE IF NOT EXISTS users(
     id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,email TEXT UNIQUE,phone TEXT UNIQUE,password TEXT)""")
     c.execute("""CREATE TABLE IF NOT EXISTS semester_subjects(
