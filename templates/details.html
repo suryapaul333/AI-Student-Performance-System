@@ -1,0 +1,128 @@
+{% extends "base.html" %}{% block content %}
+<div class="hero"><div class="hero-badge">AI POWERED • 4 YEARS • 8 SEMESTERS</div>
+<h1>AI STUDENT PERFORMANCE SYSTEM</h1><p>Personalized academic performance prediction & study guidance</p></div>
+
+<div class="container">
+{% if error %}<div class="error">{{error}}</div>{% endif %}
+<form method="post" id="studentForm">
+
+<div class="card">
+<h2>Student Details</h2>
+<div class="grid">
+<div><label>Student Name</label><input name="name" value="{{user_name}}" required></div>
+<div><label>Branch</label><select id="branch" name="branch" required>
+{% for b in catalog.keys() %}<option value="{{b}}">{{b}}</option>{% endfor %}
+</select></div>
+<div><label>Year</label><select id="year" name="year" required>
+{% for y in range(1,5) %}<option value="{{y}}">{{y}}{{'st' if y==1 else 'nd' if y==2 else 'rd' if y==3 else 'th'}} Year</option>{% endfor %}
+</select></div>
+<div><label>Semester</label><select id="semester" name="semester" required>
+<option value="1">Semester 1</option><option value="2">Semester 2</option>
+</select></div>
+<div><label>Attendance (%)</label><input type="number" name="attendance" min="0" max="100" required></div>
+<div><label>Study Hours / Day</label><input type="number" name="study_hours" min="0" max="24" step=".1" required></div>
+</div>
+</div>
+
+<div class="card">
+<div class="subjects-head">
+<div><h2>Subjects for This Semester</h2><p class="hint">Edit your college subjects here. These names are used in prediction, weak-subject resources and study plan.</p></div>
+<span id="semesterTag">Semester 1</span>
+</div>
+
+<div id="subjectRows"></div>
+<input type="hidden" name="subject_count" id="subject_count" value="5">
+
+<div class="subject-actions">
+<button type="button" class="small-btn" id="addSubject">＋ Add Subject</button>
+<button type="button" class="small-btn danger" id="removeSubject">− Remove Subject</button>
+<button type="button" class="small-btn save" id="saveSubjects">💾 Save My Semester Subjects</button>
+</div>
+<div id="saveMsg" class="save-msg"></div>
+</div>
+
+<div class="card">
+<h2>Marks</h2>
+<p class="hint">Enter marks in your college format: External /70, Internal /30, Assignment /25.</p>
+<div class="table-wrap">
+<table id="marksTable">
+<thead><tr><th>Subject</th><th>External / 70</th><th>Internal / 30</th><th>Assignment / 25</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<button class="full" type="submit">Predict Performance & Create Study Plan →</button>
+</div>
+
+</form></div>
+
+<script>
+const catalog={{ catalog|tojson }};
+const branch=document.getElementById('branch'), year=document.getElementById('year'), sem=document.getElementById('semester');
+const rows=document.getElementById('subjectRows'), marksBody=document.querySelector('#marksTable tbody');
+let subjects=[];
+
+function defaultSubjects(){
+ const n=(parseInt(year.value)-1)*2+parseInt(sem.value);
+ return [...((catalog[branch.value]||{})[String(n)]||[])].slice(0,10);
+}
+function render(){
+ document.getElementById('semesterTag').textContent='Year '+year.value+' • Semester '+sem.value+
+ ' • Semester '+((parseInt(year.value)-1)*2+parseInt(sem.value));
+ document.getElementById('subject_count').value=subjects.length;
+ rows.innerHTML='';
+ marksBody.innerHTML='';
+ subjects.forEach((s,i)=>{
+   const r=document.createElement('div'); r.className='edit-subject-row';
+   r.innerHTML=`<div class="num">${i+1}</div>
+     <div><label>Subject ${i+1} Name</label>
+     <input class="subjectName" data-index="${i}" name="subject${i+1}_name" value="${escapeHtml(s)}" required></div>`;
+   rows.appendChild(r);
+
+   const tr=document.createElement('tr');
+   tr.innerHTML=`<td><b>${escapeHtml(s)}</b></td>
+   <td><input type="number" name="subject${i+1}" min="0" max="70" step="0.01" required></td>
+   <td><input type="number" name="internal${i+1}" min="0" max="30" step="0.01" required></td>
+   <td><input type="number" name="assignment${i+1}" min="0" max="25" step="0.01" required></td>`;
+   marksBody.appendChild(tr);
+ });
+ document.querySelectorAll('.subjectName').forEach(inp=>{
+   inp.addEventListener('input',e=>{
+     subjects[+e.target.dataset.index]=e.target.value;
+     const tr=marksBody.children[+e.target.dataset.index];
+     if(tr) tr.children[0].innerHTML='<b>'+escapeHtml(e.target.value)+'</b>';
+   });
+ });
+}
+function escapeHtml(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+
+async function loadSaved(){
+ const url=`/api/saved-subjects?branch=${encodeURIComponent(branch.value)}&year=${year.value}&semester=${sem.value}`;
+ try{
+   const r=await fetch(url); const d=await r.json();
+   subjects=d.subjects && d.subjects.length ? d.subjects : defaultSubjects();
+ }catch(e){subjects=defaultSubjects();}
+ if(!subjects.length) subjects=['Subject 1','Subject 2','Subject 3','Subject 4','Subject 5'];
+ render();
+}
+async function saveSaved(){
+ const names=[...document.querySelectorAll('.subjectName')].map(x=>x.value.trim()).filter(Boolean);
+ if(!names.length){alert('Please enter at least one subject name.');return;}
+ const r=await fetch('/api/save-subjects',{method:'POST',headers:{'Content-Type':'application/json'},
+ body:JSON.stringify({branch:branch.value,year:year.value,semester:sem.value,subjects:names})});
+ const d=await r.json();
+ document.getElementById('saveMsg').textContent=d.ok?'✓ Subjects saved for this semester.':'Could not save subjects.';
+ setTimeout(()=>document.getElementById('saveMsg').textContent='',2500);
+}
+[branch,year,sem].forEach(x=>x.addEventListener('change',loadSaved));
+document.getElementById('addSubject').addEventListener('click',()=>{
+ if(subjects.length>=10){alert('Maximum 10 subjects.');return;}
+ subjects.push('New Subject'); render();
+});
+document.getElementById('removeSubject').addEventListener('click',()=>{
+ if(subjects.length<=1){alert('At least one subject is required.');return;}
+ subjects.pop(); render();
+});
+document.getElementById('saveSubjects').addEventListener('click',saveSaved);
+loadSaved();
+</script>
+{% endblock %}

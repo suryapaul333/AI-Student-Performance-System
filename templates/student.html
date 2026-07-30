@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}<div class="card"><h2>Enter Student Details</h2><form method="post">
+<h3>Student Information</h3><div class="grid"><div><label>Name</label><input name="name" value="{{user_name}}" required></div>
+<div><label>Year</label><select name="year" required><option value="">Select</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></div>
+<div><label>Semester</label><select name="semester" required><option value="">Select</option>{% for s in range(1,9) %}<option>{{s}}</option>{% endfor %}</select></div>
+<div><label>Branch</label><input name="branch" placeholder="CSE / AI&ML / ECE" required></div>
+<div><label>Attendance (%)</label><input type="number" name="attendance" min="0" max="100" required></div>
+<div><label>Study Hours per Day</label><input type="number" name="study_hours" min="0" max="24" step=".1" required></div></div>
+<h3>Subject-wise Marks (%)</h3><div class="grid">{% for i in range(1,6) %}<div><label>Subject {{i}}</label><input type="number" name="mark{{i}}" min="0" max="100" required></div>{% endfor %}</div>
+<h3>Assignment Marks (%)</h3><div class="grid">{% for i in range(1,6) %}<div><label>Subject {{i}}</label><input type="number" name="assignment{{i}}" min="0" max="100" required></div>{% endfor %}</div>
+<h3>Internal Marks (%)</h3><div class="grid">{% for i in range(1,6) %}<div><label>Subject {{i}}</label><input type="number" name="internal{{i}}" min="0" max="100" required></div>{% endfor %}</div>
+<button class="predict">Predict Performance</button></form></div>{% endblock %}
