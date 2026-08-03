@@ -1,0 +1,65 @@
+{% extends "base.html" %}{% block content %}
+<div class="hero"><h1>Victory Hub Notes & Videos</h1><p>R16 · R20 · R23 regulation-wise subject notes and lecture videos</p>
+{% if is_admin %}<a class="btn" href="{{url_for('admin_notes')}}">⬆ Upload Notes PDFs</a>{% endif %}
+</div>
+<div class="container">
+<div class="card">
+<form method="get" class="grid notes-filter">
+<div><label>Branch</label>
+<select name="branch">{% for b in catalog.keys() %}<option value="{{b}}" {% if b==branch %}selected{% endif %}>{{b}}</option>{% endfor %}</select></div>
+<div><label>Regulation</label>
+<select name="regulation">{% for r in regulations %}<option value="{{r}}" {% if r==regulation %}selected{% endif %}>{{r}}</option>{% endfor %}</select></div>
+<div><label>Year</label>
+<select name="year"><option value="1" {% if year=="1" %}selected{% endif %}>1</option><option value="2" {% if year=="2" %}selected{% endif %}>2</option><option value="3" {% if year=="3" %}selected{% endif %}>3</option><option value="4" {% if year=="4" %}selected{% endif %}>4</option></select></div>
+<div><label>Semester</label>
+<select name="semester"><option value="1" {% if semester=="1" %}selected{% endif %}>1</option><option value="2" {% if semester=="2" %}selected{% endif %}>2</option></select></div>
+<div class="notes-filter-submit"><button class="full" type="submit">Show Notes</button></div>
+</form>
+</div>
+
+<div class="card">
+<label>🔍 Search Subject</label>
+<input type="text" id="subjectSearch" placeholder="Type a subject name to filter..." onkeyup="filterSubjects()">
+</div>
+
+<div class="notes-list" id="notesList">
+{% for s in subjects %}
+<div class="card note-card" data-subject="{{s.name|lower}}">
+<h3>{{s.name}}</h3>
+<span class="reg-badge">{{regulation}}</span>
+{% if s.pdf_id %}
+<div class="note-links">
+<a class="btn green" href="{{url_for('notes_file', file_id=s.pdf_id)}}" target="_blank" rel="noopener">📄 View / Download PDF</a>
+<a class="btn" href="{{s.video}}" target="_blank" rel="noopener">▶ Video Lectures</a>
+</div>
+{% else %}
+<div class="note-links">
+<a class="btn" href="{{s.notes}}" target="_blank" rel="noopener">📄 Search Notes PDF</a>
+<a class="btn green" href="{{s.video}}" target="_blank" rel="noopener">▶ Video Lectures</a>
+</div>
+<div class="note-sites">
+<span class="hint">No PDF uploaded yet — quick links to note portals:</span>
+{% for site in s.sites %}<a href="{{site.url}}" target="_blank" rel="noopener">{{site.label}}</a>{% endfor %}
+</div>
+{% endif %}
+</div>
+{% else %}
+<div class="card center"><p>No subjects found for this selection.</p></div>
+{% endfor %}
+</div>
+<p class="hint center" id="noResultsMsg" style="display:none">No subjects match your search.</p>
+</div>
+<script>
+function filterSubjects(){
+  const q = document.getElementById('subjectSearch').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('#notesList .note-card');
+  let visibleCount = 0;
+  cards.forEach(function(card){
+    const match = card.getAttribute('data-subject').includes(q);
+    card.style.display = match ? '' : 'none';
+    if(match) visibleCount++;
+  });
+  document.getElementById('noResultsMsg').style.display = (visibleCount===0 && cards.length>0) ? 'block' : 'none';
+}
+</script>
+{% endblock %}

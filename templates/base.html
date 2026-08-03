@@ -1,2 +1,54 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI STUDENT PERFORMANCE SYSTEM</title><link rel="stylesheet" href="{{url_for('static',filename='style.css')}}"></head><body>
-<nav><div class="brand">AI STUDENT PERFORMANCE SYSTEM</div><div class="links">{% if session.get('user_id') %}<a href="{{url_for('details')}}">Dashboard</a><a href="{{url_for('history')}}">History</a><a href="{{url_for('logout')}}">Logout</a>{% else %}<a href="{{url_for('login')}}">Login</a><a href="{{url_for('register')}}">Register</a>{% endif %}</div></nav>{% block content %}{% endblock %}</body></html>
+<!doctype html>
+<html lang="en" data-theme="victory">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{app_name}} · {{app_tagline}}</title><link rel="icon" type="image/png" href="{{url_for('static',filename='img/favicon.png')}}"><link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+</head>
+<body>
+<nav class="topbar">
+<a class="brand" href="{{url_for('home')}}">
+<img class="brand-logo-img" src="{{url_for('static',filename='img/logo-nav.png')}}" alt="{{app_name}} logo">
+<span class="brand-text"><span class="brand-name">{{app_name}}</span><span class="brand-sub">{{app_slogan}}</span></span>
+</a>
+<button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">☰</button>
+<div class="nav-right" id="navRight">
+<div class="theme-picker" aria-label="Choose website theme">
+<button class="theme-dot victory" onclick="setTheme('victory')" title="Victory"></button>
+<button class="theme-dot aurora" onclick="setTheme('aurora')" title="Aurora"></button>
+<button class="theme-dot ocean" onclick="setTheme('ocean')" title="Ocean"></button>
+<button class="theme-dot sunset" onclick="setTheme('sunset')" title="Sunset"></button>
+<button class="theme-dot midnight" onclick="setTheme('midnight')" title="Midnight"></button>
+</div>
+<div class="links">
+{% if session.get('user_id') %}
+<a href="{{url_for('dashboard')}}">Dashboard</a>
+<a href="{{url_for('details')}}">Enter Data</a>
+<a href="{{url_for('notes')}}">Notes</a>
+<a href="{{url_for('history')}}">History</a>
+{% if is_admin %}<a href="{{url_for('admin')}}">Admin</a>{% endif %}
+<a href="{{url_for('logout')}}">Logout</a>
+{% else %}
+<a href="{{url_for('login')}}">Login</a>
+<a href="{{url_for('register')}}">Register</a>
+{% endif %}
+</div>
+</div>
+</nav>
+<main>
+{% with messages = get_flashed_messages() %}
+{% if messages %}<div class="container flash-wrap">{% for m in messages %}<div class="info">{{m}}</div>{% endfor %}</div>{% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">{{app_name}} • {{app_tagline}} • PostgreSQL-ready • Built for students</footer>
+<script>
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('student-theme',t)}
+(function(){const t=localStorage.getItem('student-theme')||'victory';setTheme(t)})();
+(function(){
+  const btn=document.getElementById('navToggle'), nav=document.getElementById('navRight');
+  if(btn && nav){btn.addEventListener('click',function(){
+    const open=nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true':'false');
+  });}
+})();
+</script>
+</body></html>

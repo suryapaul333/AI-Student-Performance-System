@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block content %}
+<div class="hero"><img class="hero-logo" src="{{url_for('static',filename='img/logo.png')}}" alt="{{app_name}}"><p>OTP Verification</p></div>
+<div class="container"><div class="card auth">
+<h2>Enter OTP</h2>
+<p class="hint">We sent a 6-digit code to {{email}}. It is valid for 10 minutes.</p>
+{% if error %}<div class="error">{{error}}</div>{% endif %}
+<form method="post">
+<label>OTP Code</label>
+<input name="otp" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="123456" required autofocus>
+<button class="full">Verify OTP</button>
+</form>
+<p class="center">Didn't get the code? <a href="{{url_for('forgot_password')}}">Resend OTP</a></p>
+</div></div>{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block content %}
-<div class="hero"><div class="hero-badge">PAGE 2 • AI PREDICTION</div><h1>AI STUDENT PERFORMANCE SYSTEM</h1><p>{{result.branch}} • Year {{result.year}} • Semester {{result.semester}}</p></div>
+<div class="hero"><div class="hero-badge">PAGE 2 • AI PREDICTION</div><h1>{{app_name}}</h1><p>{{result.branch}} • Year {{result.year}} • Semester {{result.semester}}</p></div>
 <div class="container">
 <div class="result-card card center"><div class="muted">Predicted Performance</div><div class="result">{{result.label}}</div><div class="score">{{result.score}}%</div><p>{{result.message}}</p></div>
 <div class="card"><h2>Weak Subjects — Focus Here</h2><div class="resource-grid">{% for s in result.weak %}<div class="resource"><h3>{{s.name}}</h3><div class="mark">{{s.mark}}%</div><a class="btn" target="_blank" href="{{s.notes}}">📘 Notes</a><a class="btn green" target="_blank" href="{{s.video}}">▶ Video Lessons</a></div>{% endfor %}</div></div>
@@ -20,5 +20,5 @@
 </div>
 
 <div class="card"><h2>7-Day Personalized Study Plan</h2><div class="table-wrap"><table><tr><th>Day</th><th>Subject</th><th>Focus</th><th>Recommended Time</th></tr>{% for d,s,f,t in result.plan %}<tr><td>{{d}}</td><td><b>{{s}}</b></td><td>{{f}}</td><td>{{t}}</td></tr>{% endfor %}</table></div></div>
-<div class="actions"><a class="btn" href="{{url_for('details')}}">← New Prediction</a><a class="btn" href="{{url_for('history')}}">Prediction History</a></div>
+<div class="actions"><a class="btn" href="{{url_for('report_pdf')}}">📄 Download PDF Report</a><a class="btn" href="{{url_for('dashboard')}}">📊 Dashboard</a><a class="btn" href="{{url_for('details')}}">← New Prediction</a><a class="btn" href="{{url_for('history')}}">Prediction History</a></div>
 </div>{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block content %}
+<div class="hero dashboard-hero"><div class="hero-badge">LIVE ANALYTICS • PERSONAL DASHBOARD</div><h1>Welcome, {{session.get('user_name')}}</h1><p>Track your academic performance, trends and study priorities.</p></div>
+<div class="container">
+<div class="toolbar"><a class="btn" href="{{url_for('details')}}">➕ New Prediction</a><a class="btn" href="{{url_for('report_pdf')}}">📄 Download PDF Report</a><button class="btn" type="button" id="themeToggle">🌙 Dark Mode</button><a class="btn" href="{{url_for('admin')}}">👨‍💼 Admin</a></div>
+<div class="stat-grid"><div class="stat-card"><span>Latest Score</span><strong>{{latest.score if latest else 0}}%</strong><small>{{latest.label if latest else 'No prediction yet'}}</small></div><div class="stat-card"><span>Average Score</span><strong>{{avg}}%</strong><small>Across {{count}} prediction{{'' if count==1 else 's'}}</small></div><div class="stat-card"><span>Best Score</span><strong>{{best}}%</strong><small>Personal best</small></div><div class="stat-card"><span>Estimated CGPA</span><strong>{{(latest.score/10)|round(2) if latest else 0}}</strong><small>Approx. 10-point scale</small></div></div>
+<div class="dashboard-grid">
+<div class="card"><h2>📈 Performance Trend</h2>{% if rows %}<div class="bar-chart">{% for r in rows %}<div class="bar-wrap"><div class="bar" style="height:{{[r['score']|float,5]|max}}%" title="{{r['score']}}%"></div><span>{{r['score']}}%</span><small>#{{loop.index}}</small></div>{% endfor %}</div>{% else %}<p class="center">Complete your first prediction to see analytics.</p>{% endif %}</div>
+<div class="card"><h2>🎯 Latest Snapshot</h2>{% if latest %}<div class="progress-row"><span>Attendance</span><div class="progress"><i style="width:{{latest.attendance}}%"></i></div><b>{{latest.attendance}}%</b></div><div class="progress-row"><span>Overall score</span><div class="progress"><i style="width:{{latest.score}}%"></i></div><b>{{latest.score}}%</b></div><p>{{latest.message}}</p>{% else %}<p>No data yet.</p>{% endif %}</div>
+</div>
+{% if latest %}<div class="card"><h2>⚠️ Focus Subjects</h2><div class="resource-grid">{% for s in latest.weak %}<div class="resource weak-resource"><h3>{{s.name}}</h3><div class="mark">{{s.mark}}%</div><a class="btn" target="_blank" href="{{s.notes}}">📘 Notes</a><a class="btn green" target="_blank" href="{{s.video}}">▶ Videos</a></div>{% endfor %}</div></div>{% endif %}
+<div class="card chatbot"><h2>🤖 Study Assistant</h2><p class="hint">Ask about your score, weak subjects, study plan, attendance or PDF report.</p><div id="chatBox" class="chat-box"><div class="chat-msg bot">Hi! I’m your study assistant. How can I help?</div></div><div class="chat-input"><input id="chatInput" placeholder="Type your question…"><button class="btn" id="chatSend">Send</button></div></div>
+</div>
+<script>
+const theme=document.getElementById('themeToggle');
+function applyTheme(){const dark=localStorage.getItem('aps-dark')==='1';document.body.classList.toggle('dark',dark);theme.textContent=dark?'☀️ Light Mode':'🌙 Dark Mode';}
+theme.addEventListener('click',()=>{localStorage.setItem('aps-dark',localStorage.getItem('aps-dark')==='1'?'0':'1');applyTheme()});applyTheme();
+const box=document.getElementById('chatBox'), input=document.getElementById('chatInput');
+async function sendChat(){const message=input.value.trim();if(!message)return;box.innerHTML+=`<div class="chat-msg user">${message.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;input.value='';const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});const d=await r.json();box.innerHTML+=`<div class="chat-msg bot">${d.reply}</div>`;box.scrollTop=box.scrollHeight}
+document.getElementById('chatSend').addEventListener('click',sendChat);input.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+</script>{% endblock %}
